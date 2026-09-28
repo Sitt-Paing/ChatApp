@@ -1,0 +1,119 @@
+<div class="min-h-screen bg-slate-100 flex items-center justify-center p-3 sm:p-6 font-sans">
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg border border-slate-200/80 flex flex-col h-[650px] overflow-hidden">
+    
+    <!-- Chat Header -->
+    <header class="px-5 py-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-xs">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-base leading-tight">SignalR Live Chat</h1>
+          <p class="text-xs text-slate-500">
+            User ID: <span class="font-mono text-slate-700 font-semibold">{{ chatService.currentUserId }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Connection Status Pill -->
+      <div class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border"
+        [class.bg-emerald-50]="chatService.connectionStatus() === 'connected'"
+        [class.text-emerald-700]="chatService.connectionStatus() === 'connected'"
+        [class.border-emerald-200]="chatService.connectionStatus() === 'connected'"
+        [class.bg-amber-50]="chatService.connectionStatus() === 'connecting'"
+        [class.text-amber-700]="chatService.connectionStatus() === 'connecting'"
+        [class.border-amber-200]="chatService.connectionStatus() === 'connecting'"
+        [class.bg-rose-50]="chatService.connectionStatus() === 'disconnected' || chatService.connectionStatus() === 'error'"
+        [class.text-rose-700]="chatService.connectionStatus() === 'disconnected' || chatService.connectionStatus() === 'error'"
+        [class.border-rose-200]="chatService.connectionStatus() === 'disconnected' || chatService.connectionStatus() === 'error'">
+        <span class="w-2 h-2 rounded-full"
+          [class.bg-emerald-500]="chatService.connectionStatus() === 'connected'"
+          [class.bg-amber-500]="chatService.connectionStatus() === 'connecting'"
+          [class.bg-rose-500]="chatService.connectionStatus() === 'disconnected' || chatService.connectionStatus() === 'error'">
+        </span>
+        <span class="capitalize">{{ chatService.connectionStatus() }}</span>
+      </div>
+    </header>
+
+    <!-- Message List View -->
+    <div
+      #messageContainer
+      class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 bg-slate-50/60"
+    >
+      @if (chatService.messages().length === 0) {
+        <div class="h-full flex flex-col items-center justify-center text-center p-6">
+          <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+          </div>
+          <h2 class="text-sm font-semibold text-slate-700">No messages yet</h2>
+          <p class="text-xs text-slate-400 mt-1 max-w-xs">Type a message below and hit send to start chatting in real-time!</p>
+        </div>
+      } @else {
+        @for (item of chatService.messages(); track $index) {
+          @if (item.isMe) {
+            <!-- My Message (Right aligned, Primary Color) -->
+            <div class="flex justify-end">
+              <div class="max-w-[80%] sm:max-w-[70%]">
+                <div class="bg-blue-600 text-white rounded-2xl rounded-tr-xs px-4 py-2.5 shadow-xs text-sm leading-relaxed break-words">
+                  {{ item.message }}
+                </div>
+                <div class="text-[11px] text-slate-400 text-right mt-1 px-1">
+                  {{ item.timestamp | date:'shortTime' }}
+                </div>
+              </div>
+            </div>
+          } @else {
+            <!-- Incoming Message (Left aligned, Neutral Color) -->
+            <div class="flex items-start gap-2.5">
+              <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                {{ (item.username + '').slice(-2) }}
+              </div>
+              <div class="max-w-[80%] sm:max-w-[70%]">
+                <div class="text-[11px] font-semibold text-slate-500 mb-1 px-1">
+                  User #{{ item.username }}
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-xs text-sm leading-relaxed break-words">
+                  {{ item.message }}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1 px-1">
+                  {{ item.timestamp | date:'shortTime' }}
+                </div>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+
+    <!-- Message Input Bar -->
+    <div class="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center gap-2.5">
+      <input
+        pInputText
+        type="text"
+        [ngModel]="inputMessage()"
+        (ngModelChange)="inputMessage.set($event)"
+        (keydown)="onKeyDown($event)"
+        placeholder="Type a message... (Press Enter to send)"
+        class="flex-1 text-sm py-2.5 px-3.5"
+      />
+
+      <button
+        pButton
+        type="button"
+        (click)="send()"
+        [disabled]="!inputMessage().trim() || chatService.connectionStatus() !== 'connected'"
+        class="flex items-center justify-center gap-2 px-4 py-2.5"
+      >
+        <span>Send</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
