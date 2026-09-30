@@ -1,61 +1,58 @@
-<div class="min-h-dvh bg-[#f6f7f4] text-[#25362f]">
-  <header class="flex h-[84px] items-center justify-between gap-5 border-b border-[#e4e9e2] bg-white px-[5%] max-[800px]:h-[70px] max-[800px]:px-[22px]">
+<div class="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#f6f7f4] text-[#25362f]">
+  <header class="flex h-21 shrink-0 items-center justify-between gap-5 border-b border-[#e4e9e2] bg-white px-[5%] max-[800px]:h-17.5 max-[800px]:px-5.5">
     <a class="inline-flex items-center gap-2.5 text-[29px] font-extrabold tracking-[-1.7px] text-[#25362f] no-underline" routerLink="/chat" aria-label="Convo home">
-      <span class="grid size-[37px] place-items-center rounded-xl bg-[#147d65] text-white [&_i]:text-xl"><i class="pi pi-comments" aria-hidden="true"></i></span>
+      <span class="grid size-9.25 place-items-center rounded-xl bg-[#147d65] text-white [&_i]:text-xl"><i class="pi pi-comments" aria-hidden="true"></i></span>
       <span>Pi<span class="text-[#16816a]">.</span></span>
     </a>
     <span class="text-[13px] text-[#88938c] max-[800px]:hidden">A little closer, one message at a time.</span>
     <div class="flex items-center gap-3 text-[13px] font-semibold">
-      <p-avatar styleClass="size-[33px] shrink-0 bg-[#e7f0e6] text-[10px] font-semibold text-[#537b60]" [label]="initials(displayName())" shape="circle" />
+      <p-avatar styleClass="size-8.25 shrink-0 bg-[#e7f0e6] text-[10px] font-semibold text-[#537b60]" [label]="initials(displayName())" shape="circle" />
       <span class="max-[600px]:hidden">{{ displayName() }}</span>
+      <p-tag [value]="statusLabel()" [severity]="statusSeverity()" [rounded]="true"
+        [icon]="chatService.connectionStatus() === 'connected' ? 'pi pi-bolt' : 'pi pi-wifi'" />
       <p-button icon="pi pi-sign-out" [text]="true" severity="secondary"
         ariaLabel="Sign out" [loading]="loggingOut()" (onClick)="logout()" />
     </div>
   </header>
 
-  <main class="mx-auto max-w-[1280px] px-10 pt-8 pb-4 max-[800px]:px-[18px] max-[800px]:pt-[22px] max-[600px]:px-3 max-[600px]:pt-[18px] max-[600px]:pb-3">
-    <div class="mb-6 flex items-center justify-between max-[600px]:mb-4">
-      <div><span class="text-[10px] font-bold tracking-[2.2px] text-[#7b8e82] max-[600px]:text-[9px]">YOUR SPACE TO CONNECT</span><h1 class="mt-1 text-[34px] font-[650] tracking-[-1.5px] max-[600px]:text-[28px]">Messages<span class="text-[#16816a]">.</span></h1></div>
-      <p-tag [value]="statusLabel()" [severity]="statusSeverity()" [rounded]="true"
-        [icon]="chatService.connectionStatus() === 'connected' ? 'pi pi-bolt' : 'pi pi-wifi'" />
-    </div>
-    <section class="group/shell grid h-[min(720px,calc(100dvh-245px))] min-h-[420px] grid-cols-[300px_minmax(0,1fr)] overflow-hidden rounded-[20px] border border-[#e0e7df] bg-white shadow-[0_10px_35px_#24362c06] max-[800px]:grid-cols-[250px_minmax(0,1fr)] max-[600px]:h-[calc(100dvh-185px)] max-[600px]:grid-cols-1 max-[600px]:rounded-[15px]" [attr.data-conversation-open]="!!chatService.recipient()" aria-label="Messenger">
+  <main class="mx-auto flex min-h-0 w-full max-w-[1280px] flex-1 flex-col px-4 py-4 max-[600px]:p-2">
+<section class="group/shell grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] overflow-hidden rounded-[20px] border border-[#e0e7df] bg-white shadow-[0_10px_35px_#24362c06] max-[800px]:grid-cols-[250px_minmax(0,1fr)] max-[600px]:grid-cols-1 max-[600px]:rounded-[15px]" [attr.data-conversation-open]="!!chatService.recipient()" aria-label="Messenger">
       <aside class="flex min-h-0 flex-col border-r border-[#e8ece6] max-[600px]:border-0 max-[600px]:group-data-[conversation-open=true]/shell:hidden">
-        <div class="flex items-center gap-[9px] px-[22px] pt-[18px] pb-3 [&_h2]:text-base [&_h2]:font-[650] [&_p-button]:ml-auto"><h2>People</h2><span class="grid h-[22px] min-w-[23px] place-items-center rounded-md bg-[#f1f4ee] text-[11px] text-[#7c8c81]">{{ chatService.contacts().length }}</span>
+        <div class="flex items-center gap-2.25 px-5.5 pt-4.5 pb-3 [&_h2]:text-base [&_h2]:font-[650] [&_p-button]:ml-auto"><h2>People</h2><span class="grid h-5.5 min-w-[23px] place-items-center rounded-md bg-[#f1f4ee] text-[11px] text-[#7c8c81]">{{ chatService.contacts().length }}</span>
           <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" severity="secondary"
             ariaLabel="Refresh contacts" [loading]="chatService.loadingContacts()" (onClick)="refreshContacts()" />
         </div>
-        <div class="relative mx-[18px] mb-4 [&_i]:absolute [&_i]:top-[14px] [&_i]:left-[13px] [&_i]:z-1 [&_i]:text-xs [&_i]:text-[#98a49a] [&_input]:w-full [&_input]:rounded-[10px] [&_input]:border-[#edf0e9] [&_input]:bg-[#f7f9f5] [&_input]:py-3 [&_input]:pr-3 [&_input]:pl-[35px] [&_input]:text-xs"><i class="pi pi-search" aria-hidden="true"></i>
+        <div class="relative mx-4.5 mb-4 [&_i]:absolute [&_i]:top-3.5 [&_i]:left-3.25 [&_i]:z-1 [&_i]:text-xs [&_i]:text-[#98a49a] [&_input]:w-full [&_input]:rounded-[10px] [&_input]:border-[#edf0e9] [&_input]:bg-[#f7f9f5] [&_input]:py-3 [&_input]:pr-3 [&_input]:pl-8.75 [&_input]:text-xs"><i class="pi pi-search" aria-hidden="true"></i>
           <input pInputText aria-label="Search contacts" placeholder="Find someone…" [ngModel]="search()" (ngModelChange)="search.set($event)" />
         </div>
         <div class="flex-1 overflow-y-auto px-3">
           @if (chatService.loadingContacts()) {
             @for (placeholder of [1, 2, 3]; track placeholder) {
-              <div class="flex items-center gap-3 px-3 py-[15px]"><p-skeleton shape="circle" size="2.75rem" /><p-skeleton width="9rem" height="1rem" /></div>
+              <div class="flex items-center gap-3 px-3 py-3.75"><p-skeleton shape="circle" size="2.75rem" /><p-skeleton width="9rem" height="1rem" /></div>
             }
           } @else {
             @for (contact of filteredContacts(); track contact.id) {
-              <button type="button" class="mb-1 flex w-full cursor-pointer items-center gap-3 rounded-[11px] border-0 bg-transparent px-3 py-[15px] text-left text-inherit transition-colors duration-150 hover:bg-[#f7f9f5] aria-pressed:bg-[#eaf5ef] disabled:cursor-wait motion-reduce:transition-none [&>i]:text-[11px] [&>i]:text-[#829b8b]"
+              <button type="button" class="mb-1 flex w-full cursor-pointer items-center gap-3 rounded-[11px] border-0 bg-transparent px-3 py-3.75 text-left text-inherit transition-colors duration-150 hover:bg-[#f7f9f5] aria-pressed:bg-[#eaf5ef] disabled:cursor-wait motion-reduce:transition-none [&>i]:text-[11px] [&>i]:text-[#829b8b]"
                 [attr.aria-pressed]="chatService.recipient()?.id === contact.id"
                 [disabled]="chatService.sending()" (click)="selectContact(contact.id)">
-                <p-avatar styleClass="size-[42px] shrink-0 bg-[#e7f0e6] text-xs font-semibold text-[#537b60]" [label]="initials(contact.display_name)" shape="circle" />
-                <span class="flex min-w-0 flex-1 flex-col gap-[5px] [&_strong]:truncate [&_strong]:text-[13px] [&_small]:text-[10px] [&_small]:text-[#8b998f]"><strong>{{ contact.display_name }}</strong><small>Member · {{ contact.id.slice(0, 8) }}</small></span>
+                <p-avatar styleClass="size-10.5 shrink-0 bg-[#e7f0e6] text-xs font-semibold text-[#537b60]" [label]="initials(contact.display_name)" shape="circle" />
+                <span class="flex min-w-0 flex-1 flex-col gap-1.25 [&_strong]:truncate [&_strong]:text-[13px] [&_small]:text-[10px] [&_small]:text-[#8b998f]"><strong>{{ contact.display_name }}</strong><small>Member · {{ contact.id.slice(0, 8) }}</small></span>
                 <i class="pi pi-angle-right" aria-hidden="true"></i>
               </button>
             } @empty {
-              <div class="px-4 py-9 text-center text-[#819188] [&>i]:mb-[15px] [&>i]:block [&>i]:text-[27px] [&_strong]:text-[13px] [&_strong]:text-[#526b5d] [&_p]:mt-2 [&_p]:text-xs [&_p]:leading-[1.8]"><i class="pi pi-users" aria-hidden="true"></i>
+              <div class="px-4 py-9 text-center text-[#819188] [&>i]:mb-3.75 [&>i]:block [&>i]:text-[27px] [&_strong]:text-[13px] [&_strong]:text-[#526b5d] [&_p]:mt-2 [&_p]:text-xs [&_p]:leading-[1.8]"><i class="pi pi-users" aria-hidden="true"></i>
                 <strong>{{ search() ? 'No matches yet' : 'Make your first connection' }}</strong>
                 <p>{{ search() ? 'Try a different name or member ID.' : 'Invite a friend to sign up and open chat, then refresh your people list.' }}</p>
               </div>
             }
           }
         </div>
-        <div class="mx-[22px] mt-4 mb-[23px] flex items-center gap-2.5 border-t border-[#edf0ea] pt-5 text-[10px] leading-[1.8] text-[#8c9a91] [&_i]:text-[19px] [&_i]:text-[#6f9682] [&_strong]:font-medium [&_strong]:text-[#5e7969]"><i class="pi pi-shield" aria-hidden="true"></i><span>Private conversations.<br /><strong>Just between you two.</strong></span></div>
+        <div class="mx-5.5 mt-4 mb-5.75 flex items-center gap-2.5 border-t border-[#edf0ea] pt-5 text-[10px] leading-[1.8] text-[#8c9a91] [&_i]:text-[19px] [&_i]:text-[#6f9682] [&_strong]:font-medium [&_strong]:text-[#5e7969]"><i class="pi pi-shield" aria-hidden="true"></i><span>Private conversations.<br /><strong>Just between you two.</strong></span></div>
       </aside>
 
       <div class="flex min-h-0 min-w-0 flex-col bg-[#fcfdfb] max-[600px]:hidden max-[600px]:group-data-[conversation-open=true]/shell:flex">
         @if (chatService.error()) {
-          <div class="flex items-center gap-2.5 px-[18px] py-3 [&_p-message]:min-w-0 [&_p-message]:flex-1 [&_p-message]:[overflow-wrap:anywhere]" role="alert">
+          <div class="flex items-center gap-2.5 px-4.5 py-3 [&_p-message]:min-w-0 [&_p-message]:flex-1 [&_p-message]:wrap-anywhere" role="alert">
             <p-message severity="error" [closable]="false">{{ chatService.error() }}</p-message>
             @if (chatService.connectionStatus() === 'error' || chatService.connectionStatus() === 'disconnected') {
               <p-button label="Reconnect" icon="pi pi-refresh" size="small" [outlined]="true" (onClick)="chatService.startConnection()" />
@@ -63,34 +60,34 @@
           </div>
         }
         @if (chatService.recipient(); as peer) {
-          <header class="flex items-center gap-3 border-b border-[#e8ede6] bg-white px-7 py-5 max-[800px]:px-[18px] max-[600px]:gap-2 max-[600px]:px-[14px] max-[600px]:py-3 [&_h2]:mb-[5px] [&_h2]:text-[15px] [&_h2]:font-[650] [&_p]:text-[10px] [&_p]:text-[#869b8d] [&_p_i]:mr-1 [&_p_i]:text-[9px]">
+          <header class="flex shrink-0 items-center gap-3 border-b border-[#e8ede6] bg-white px-7 py-5 max-[800px]:px-4.5 max-[600px]:gap-2 max-[600px]:px-3.5 max-[600px]:py-3 [&_h2]:mb-1.25 [&_h2]:text-[15px] [&_h2]:font-[650] [&_p]:text-[10px] [&_p]:text-[#869b8d] [&_p_i]:mr-1 [&_p_i]:text-[9px]">
             <p-button class="hidden max-[600px]:block" icon="pi pi-arrow-left" [text]="true" severity="secondary" ariaLabel="Back to people" (onClick)="selectContact('')" />
-            <p-avatar styleClass="size-[42px] shrink-0 bg-[#e7f0e6] text-xs font-semibold text-[#537b60]" [label]="initials(peer.display_name)" shape="circle" />
+            <p-avatar styleClass="size-10.5 shrink-0 bg-[#e7f0e6] text-xs font-semibold text-[#537b60]" [label]="initials(peer.display_name)" shape="circle" />
             <div><h2>{{ peer.display_name }}</h2><p><i class="pi pi-lock" aria-hidden="true"></i> Private conversation</p></div>
             <span class="ml-auto text-[10px] text-[#a0aaa1] max-[800px]:hidden">A good conversation starts here</span>
           </header>
-          <div #messageContainer class="min-h-0 flex-1 overflow-y-auto px-7 py-[18px] max-[800px]:px-[18px]" role="log" aria-label="Conversation messages" aria-live="polite">
+          <div #messageContainer class="min-h-0 flex-1 overflow-y-auto px-7 py-4.5 max-[800px]:px-4.5" role="log" aria-label="Conversation messages" aria-live="polite">
             @if (chatService.loadingHistory()) {
-              <div class="grid gap-[18px]"><p-skeleton width="60%" height="3rem" /><p-skeleton width="45%" height="3rem" /></div>
+              <div class="grid gap-4.5"><p-skeleton width="60%" height="3rem" /><p-skeleton width="45%" height="3rem" /></div>
             } @else if (chatService.messages().length === 0) {
-              <div class="flex h-full min-h-40 flex-col items-center justify-center text-center [&_h3]:mb-[9px] [&_h3]:text-lg [&_p]:text-xs [&_p]:text-[#8c9a90]"><span class="mb-[14px] grid size-[58px] place-items-center rounded-[19px] bg-[#edf5ee] text-[25px] text-[#4a9875]"><i class="pi pi-comment" aria-hidden="true"></i></span>
+              <div class="flex h-full min-h-40 flex-col items-center justify-center text-center [&_h3]:mb-2.25 [&_h3]:text-lg [&_p]:text-xs [&_p]:text-[#8c9a90]"><span class="mb-3.5 grid size-14.5 place-items-center rounded-[19px] bg-[#edf5ee] text-[25px] text-[#4a9875]"><i class="pi pi-comment" aria-hidden="true"></i></span>
                 <h3>Say hello to {{ peer.display_name }}</h3><p>A simple hello can be the start of something good.</p>
               </div>
             }
             @for (item of chatService.messages(); track item.id; let index = $index) {
-              @if (startsDay(index, item)) { <div class="mt-2.5 mb-6 flex justify-center [&_span]:rounded-[20px] [&_span]:bg-[#f0f3ed] [&_span]:px-3 [&_span]:py-[5px] [&_span]:text-[10px] [&_span]:text-[#91a08f]"><span>{{ item.timestamp | date:'mediumDate' }}</span></div> }
-              <div class="group/message mb-[18px] flex items-end gap-[9px] data-[mine=true]:justify-end" [attr.data-mine]="item.isMe">
-                @if (!item.isMe) { <p-avatar styleClass="size-[27px] shrink-0 bg-[#e7f0e6] text-[9px] font-semibold text-[#537b60]" [label]="initials(item.username)" shape="circle" /> }
-                <div class="min-w-0 max-w-[78%] max-[600px]:max-w-[85%]"><div class="rounded-[14px_14px_14px_4px] border border-[#e5eae1] bg-white px-4 py-3 text-[13px] leading-[1.7] whitespace-pre-wrap text-[#3b5042] [overflow-wrap:anywhere] group-data-[mine=true]/message:rounded-[14px_14px_4px_14px] group-data-[mine=true]/message:border-[#187e67] group-data-[mine=true]/message:bg-[#187e67] group-data-[mine=true]/message:text-white">{{ item.message }}</div>
-                  <div class="mx-[3px] mt-1.5 flex items-center gap-1.5 text-[9px] text-[#a0ada3] group-data-[mine=true]/message:justify-end [&_i]:text-[10px] [&_i]:text-[#3c9a7f]"><span>{{ item.timestamp | date:'shortTime' }}</span>
+              @if (startsDay(index, item)) { <div class="mt-2.5 mb-6 flex justify-center [&_span]:rounded-[20px] [&_span]:bg-[#f0f3ed] [&_span]:px-3 [&_span]:py-1.25 [&_span]:text-[10px] [&_span]:text-[#91a08f]"><span>{{ item.timestamp | date:'mediumDate' }}</span></div> }
+              <div class="group/message mb-4.5 flex items-end gap-2.25 data-[mine=true]:justify-end" [attr.data-mine]="item.isMe">
+                @if (!item.isMe) { <p-avatar styleClass="size-6.75 shrink-0 bg-[#e7f0e6] text-[9px] font-semibold text-[#537b60]" [label]="initials(item.username)" shape="circle" /> }
+                <div class="min-w-0 max-w-[78%] max-[600px]:max-w-[85%]"><div class="rounded-[14px_14px_14px_4px] border border-[#e5eae1] bg-white px-4 py-3 text-[13px] leading-[1.7] whitespace-pre-wrap text-[#3b5042] wrap-anywhere group-data-[mine=true]/message:rounded-[14px_14px_4px_14px] group-data-[mine=true]/message:border-[#187e67] group-data-[mine=true]/message:bg-[#187e67] group-data-[mine=true]/message:text-white">{{ item.message }}</div>
+                  <div class="mx-0.75 mt-1.5 flex items-center gap-1.5 text-[9px] text-[#a0ada3] group-data-[mine=true]/message:justify-end [&_i]:text-[10px] [&_i]:text-[#3c9a7f]"><span>{{ item.timestamp | date:'shortTime' }}</span>
                     @if (item.isMe) { <i class="pi pi-check" aria-label="Saved"></i> }
                   </div>
                 </div>
               </div>
             }
           </div>
-          <form class="border-t border-[#e8ede6] bg-white px-7 pt-4 pb-[19px] max-[800px]:px-[18px]" (ngSubmit)="send()">
-            <div class="flex items-end gap-3 rounded-[14px] border border-[#dce5db] bg-[#fbfcf9] py-2 pr-2.5 pl-4 focus-within:border-[#73a992] focus-within:shadow-[0_0_0_3px_#1881690a] [&_textarea]:max-h-[140px] [&_textarea]:min-w-0 [&_textarea]:flex-1 [&_textarea]:resize-none [&_textarea]:border-0 [&_textarea]:bg-transparent [&_textarea]:px-0 [&_textarea]:py-2 [&_textarea]:text-[13px] [&_textarea]:leading-[1.6] [&_textarea]:shadow-none">
+          <form class="shrink-0 border-t border-[#e8ede6] bg-white px-7 pt-4 pb-4.75 max-[800px]:px-4.5" (ngSubmit)="send()">
+            <div class="flex items-end gap-3 rounded-[14px] border border-[#dce5db] bg-[#fbfcf9] py-2 pr-2.5 pl-4 focus-within:border-[#73a992] focus-within:shadow-[0_0_0_3px_#1881690a] [&_textarea]:max-h-35 [&_textarea]:min-w-0 [&_textarea]:flex-1 [&_textarea]:resize-none [&_textarea]:border-0 [&_textarea]:bg-transparent [&_textarea]:px-0 [&_textarea]:py-2 [&_textarea]:text-[13px] [&_textarea]:leading-[1.6] [&_textarea]:shadow-none">
               <textarea pTextarea aria-label="Write a message" placeholder="Write something nice…"
                 [ngModel]="inputMessage()" (ngModelChange)="inputMessage.set($event)" name="message"
                 (keydown)="onKeyDown($event)" [autoResize]="true" rows="1" maxlength="4000"
@@ -99,19 +96,21 @@
                 [loading]="chatService.sending()"
                 [disabled]="!inputMessage().trim() || chatService.sending() || chatService.connectionStatus() !== 'connected'" />
             </div>
-            <div class="mx-0.5 mt-2.5 flex justify-between gap-2.5 text-[9px] text-[#9daa9e] max-[600px]:text-[8px]"><span>Enter to send <span class="mx-[5px]">·</span> Shift + Enter for a new line</span><span>{{ inputMessage().length }} / 4000</span></div>
+            <div class="mx-0.5 mt-2.5 flex justify-between gap-2.5 text-[9px] text-[#9daa9e] max-[600px]:text-[8px]"><span>Enter to send <span class="mx-1.25">·</span> Shift + Enter for a new line</span><span>{{ inputMessage().length }} / 4000</span></div>
           </form>
         } @else {
-          <div class="flex flex-1 flex-col items-center justify-center px-[22px] py-[35px] text-center [&_h2]:my-[15px] [&_h2]:font-serif [&_h2]:text-[37px] [&_h2]:leading-[1.17] [&_h2]:font-normal [&_h2]:tracking-[-1px] [&_h2]:text-[#334d3d] max-[800px]:[&_h2]:text-[30px] [&_p]:text-xs [&_p]:leading-[1.9] [&_p]:text-[#8c9d8d]">
-            <div class="relative mb-7 h-[145px] w-[200px]" aria-hidden="true"><span class="absolute top-[5px] left-[30px] size-[140px] rounded-full bg-[#f0f4e9]"></span><div class="absolute top-[25px] left-5 grid h-[70px] w-24 -rotate-9 place-items-center rounded-[22px_22px_22px_5px] bg-[#187e67] text-[33px] text-white shadow-[0_8px_20px_#2b725b12]"><i class="pi pi-ellipsis-h"></i></div><div class="absolute top-[77px] right-[15px] grid h-[61px] w-[76px] rotate-9 place-items-center rounded-[19px_19px_5px_19px] bg-[#e7c78d] text-2xl text-white shadow-[0_8px_20px_#2b725b12]"><i class="pi pi-heart"></i></div><span class="absolute top-[22px] right-4 text-lg text-[#a1b59a]">✦</span><span class="absolute bottom-[5px] left-[14px] text-[13px] text-[#a1b59a]">✦</span></div>
+          <div class="flex flex-1 flex-col items-center justify-center px-5.5 py-8.75 text-center [&_h2]:my-[15px] [&_h2]:font-serif [&_h2]:text-[37px] [&_h2]:leading-[1.17] [&_h2]:font-normal [&_h2]:tracking-[-1px] [&_h2]:text-[#334d3d] max-[800px]:[&_h2]:text-[30px] [&_p]:text-xs [&_p]:leading-[1.9] [&_p]:text-[#8c9d8d]">
+            <div class="relative mb-7 h-36.25 w-50" aria-hidden="true"><span class="absolute top-1.25 left-7.5 size-35 rounded-full bg-[#f0f4e9]"></span><div class="absolute top-6.25 left-5 grid h-17.5 w-24 -rotate-9 place-items-center rounded-[22px_22px_22px_5px] bg-[#187e67] text-[33px] text-white shadow-[0_8px_20px_#2b725b12]"><i class="pi pi-ellipsis-h"></i></div><div class="absolute top-19.25 right-3.75 grid h-15.25 w-19 rotate-9 place-items-center rounded-[19px_19px_5px_19px] bg-[#e7c78d] text-2xl text-white shadow-[0_8px_20px_#2b725b12]"><i class="pi pi-heart"></i></div><span class="absolute top-5.5 right-4 text-lg text-[#a1b59a]">✦</span><span class="absolute bottom-1.25 left-3.5 text-[13px] text-[#a1b59a]">✦</span></div>
             <span class="text-[10px] font-bold tracking-[2.2px] text-[#7b8e82] max-[600px]:text-[9px]">GOOD CONVERSATIONS LIVE HERE</span>
             <h2>A small hello.<br />A real connection.</h2>
             <p>Choose someone from your people list<br />and pick up the conversation.</p>
-            <span class="mt-[42px] text-[9px] text-[#99a697] [&_i]:mr-[5px]"><i class="pi pi-lock" aria-hidden="true"></i> Your messages are shared only with the person you choose.</span>
+            <span class="mt-10.5 text-[9px] text-[#99a697] [&_i]:mr-[5px]"><i class="pi pi-lock" aria-hidden="true"></i> Your messages are shared only with the person you choose.</span>
           </div>
         }
       </div>
     </section>
-    <footer class="flex justify-between px-[3px] pt-[18px] text-[10px] text-[#a1ada0] max-[600px]:hidden"><span>Made for the moments between.</span><span>convo · private messaging</span></footer>
-  </main>
+</main>
 </div>
+
+
+
