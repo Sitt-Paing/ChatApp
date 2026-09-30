@@ -1,6 +1,9 @@
 # Convo: Supabase Auth + SignalR messaging
 
-PrimeNG 20.4.0 powers the responsive login and messenger UI.
+Angular component and service logic uses TypeScript. Tailwind CSS utilities and
+PrimeNG 20.4.0 power the responsive login and messenger UI.
+Edit layout and appearance in `src/app/login.html` and `src/app/chat.html`;
+`src/styles.css` contains Tailwind imports and shared base styles. No SCSS is used.
 Supabase manages accounts, profiles, message storage, and database row-level security.
 ASP.NET SignalR delivers live messages to the sender and recipient.
 
