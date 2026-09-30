@@ -1,0 +1,117 @@
+<div class="messenger-page">
+  <header class="app-header">
+    <a class="brand" routerLink="/chat" aria-label="Convo home">
+      <span class="brand-mark"><i class="pi pi-comments" aria-hidden="true"></i></span>
+      <span>convo<span class="brand-dot">.</span></span>
+    </a>
+    <span class="header-note">A little closer, one message at a time.</span>
+    <div class="header-account">
+      <p-avatar [label]="initials(displayName())" shape="circle" />
+      <span class="account-name">{{ displayName() }}</span>
+      <p-button icon="pi pi-sign-out" [text]="true" severity="secondary"
+        ariaLabel="Sign out" [loading]="loggingOut()" (onClick)="logout()" />
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="workspace-heading">
+      <div><span class="eyebrow">YOUR SPACE TO CONNECT</span><h1>Messages<span class="heading-dot">.</span></h1></div>
+      <p-tag [value]="statusLabel()" [severity]="statusSeverity()" [rounded]="true"
+        [icon]="chatService.connectionStatus() === 'connected' ? 'pi pi-bolt' : 'pi pi-wifi'" />
+    </div>
+    <section class="messenger-shell" [class.conversation-open]="!!chatService.recipient()" aria-label="Messenger">
+      <aside class="contacts-panel">
+        <div class="contacts-heading"><h2>People</h2><span class="contact-count">{{ chatService.contacts().length }}</span>
+          <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" severity="secondary"
+            ariaLabel="Refresh contacts" [loading]="chatService.loadingContacts()" (onClick)="refreshContacts()" />
+        </div>
+        <div class="contact-search"><i class="pi pi-search" aria-hidden="true"></i>
+          <input pInputText aria-label="Search contacts" placeholder="Find someone…" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+        </div>
+        <div class="contact-list">
+          @if (chatService.loadingContacts()) {
+            @for (placeholder of [1, 2, 3]; track placeholder) {
+              <div class="contact-skeleton"><p-skeleton shape="circle" size="2.75rem" /><p-skeleton width="9rem" height="1rem" /></div>
+            }
+          } @else {
+            @for (contact of filteredContacts(); track contact.id) {
+              <button type="button" class="contact-row" [class.selected]="chatService.recipient()?.id === contact.id"
+                [attr.aria-pressed]="chatService.recipient()?.id === contact.id"
+                [disabled]="chatService.sending()" (click)="selectContact(contact.id)">
+                <p-avatar [label]="initials(contact.display_name)" shape="circle" />
+                <span class="contact-copy"><strong>{{ contact.display_name }}</strong><small>Member · {{ contact.id.slice(0, 8) }}</small></span>
+                <i class="pi pi-angle-right" aria-hidden="true"></i>
+              </button>
+            } @empty {
+              <div class="contacts-empty"><i class="pi pi-users" aria-hidden="true"></i>
+                <strong>{{ search() ? 'No matches yet' : 'Make your first connection' }}</strong>
+                <p>{{ search() ? 'Try a different name or member ID.' : 'Invite a friend to sign up and open chat, then refresh your people list.' }}</p>
+              </div>
+            }
+          }
+        </div>
+        <div class="sidebar-footer"><i class="pi pi-shield" aria-hidden="true"></i><span>Private conversations.<br /><strong>Just between you two.</strong></span></div>
+      </aside>
+
+      <div class="conversation-panel">
+        @if (chatService.error()) {
+          <div class="chat-alert" role="alert">
+            <p-message severity="error" [closable]="false">{{ chatService.error() }}</p-message>
+            @if (chatService.connectionStatus() === 'error' || chatService.connectionStatus() === 'disconnected') {
+              <p-button label="Reconnect" icon="pi pi-refresh" size="small" [outlined]="true" (onClick)="chatService.startConnection()" />
+            }
+          </div>
+        }
+        @if (chatService.recipient(); as peer) {
+          <header class="conversation-header">
+            <p-button class="mobile-back" icon="pi pi-arrow-left" [text]="true" severity="secondary" ariaLabel="Back to people" (onClick)="selectContact('')" />
+            <p-avatar [label]="initials(peer.display_name)" shape="circle" />
+            <div><h2>{{ peer.display_name }}</h2><p><i class="pi pi-lock" aria-hidden="true"></i> Private conversation</p></div>
+            <span class="conversation-header-note">A good conversation starts here</span>
+          </header>
+          <div #messageContainer class="message-list" role="log" aria-label="Conversation messages" aria-live="polite">
+            @if (chatService.loadingHistory()) {
+              <div class="history-loading"><p-skeleton width="60%" height="3rem" /><p-skeleton width="45%" height="3rem" /></div>
+            } @else if (chatService.messages().length === 0) {
+              <div class="conversation-empty"><span class="empty-icon"><i class="pi pi-comment" aria-hidden="true"></i></span>
+                <h3>Say hello to {{ peer.display_name }}</h3><p>A simple hello can be the start of something good.</p>
+              </div>
+            }
+            @for (item of chatService.messages(); track item.id; let index = $index) {
+              @if (startsDay(index, item)) { <div class="day-divider"><span>{{ item.timestamp | date:'mediumDate' }}</span></div> }
+              <div class="message-row" [class.mine]="item.isMe">
+                @if (!item.isMe) { <p-avatar [label]="initials(item.username)" shape="circle" /> }
+                <div class="message-content"><div class="message-bubble">{{ item.message }}</div>
+                  <div class="message-meta"><span>{{ item.timestamp | date:'shortTime' }}</span>
+                    @if (item.isMe) { <i class="pi pi-check" aria-label="Saved"></i> }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+          <form class="composer" (ngSubmit)="send()">
+            <div class="composer-box">
+              <textarea pTextarea aria-label="Write a message" placeholder="Write something nice…"
+                [ngModel]="inputMessage()" (ngModelChange)="inputMessage.set($event)" name="message"
+                (keydown)="onKeyDown($event)" [autoResize]="true" rows="1" maxlength="4000"
+                [disabled]="chatService.sending()"></textarea>
+              <p-button type="submit" icon="pi pi-arrow-up" [rounded]="true" ariaLabel="Send message"
+                [loading]="chatService.sending()"
+                [disabled]="!inputMessage().trim() || chatService.sending() || chatService.connectionStatus() !== 'connected'" />
+            </div>
+            <div class="composer-note"><span>Enter to send <span class="note-separator">·</span> Shift + Enter for a new line</span><span>{{ inputMessage().length }} / 4000</span></div>
+          </form>
+        } @else {
+          <div class="welcome-panel">
+            <div class="welcome-art" aria-hidden="true"><span class="art-orbit"></span><div class="art-bubble bubble-one"><i class="pi pi-ellipsis-h"></i></div><div class="art-bubble bubble-two"><i class="pi pi-heart"></i></div><span class="art-spark spark-one">✦</span><span class="art-spark spark-two">✦</span></div>
+            <span class="eyebrow">GOOD CONVERSATIONS LIVE HERE</span>
+            <h2>A small hello.<br />A real connection.</h2>
+            <p>Choose someone from your people list<br />and pick up the conversation.</p>
+            <span class="welcome-footnote"><i class="pi pi-lock" aria-hidden="true"></i> Your messages are shared only with the person you choose.</span>
+          </div>
+        }
+      </div>
+    </section>
+    <footer class="workspace-footer"><span>Made for the moments between.</span><span>convo · private messaging</span></footer>
+  </main>
+</div>
