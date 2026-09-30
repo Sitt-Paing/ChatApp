@@ -1,59 +1,110 @@
-# SignalRClient
+# Convo: Supabase Auth + SignalR messaging
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.6.
+PrimeNG 20.4.0 powers the responsive login and messenger UI.
+Supabase manages accounts, profiles, message storage, and database row-level security.
+ASP.NET SignalR delivers live messages to the sender and recipient.
 
-## Development server
+## Development: run BOTH terminals
 
-To start a local development server, run:
+Terminal 1, repository root:
 
-```bash
-ng serve
-```
+    dotnet run --project SignalR.server/SignalR.csproj --launch-profile http
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Terminal 2:
 
-## Code scaffolding
+    cd SignalR.client
+    npm ci
+    npm start
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Open http://localhost:4200.
+The Angular development proxy forwards /hub and its WebSocket traffic to http://localhost:5180.
+Keep the backend running for live messaging.
 
-```bash
-ng generate component component-name
-```
+## Serve the built app directly from ASP.NET
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+    cd SignalR.client
+    npm ci
+    npm run build
+    cd ..
+    dotnet run --project SignalR.server/SignalR.csproj --launch-profile http
 
-```bash
-ng generate --help
-```
+Open http://localhost:5180. Rebuild the frontend after source changes.
+The server supports direct navigation to /login and /chat.
 
-## Building
+## Supabase configuration
 
-To build the project run:
+Project: https://supabase.com/dashboard/project/uztzqyvtaonvnelxowlg
 
-```bash
-ng build
-```
+Client: src/app/supabase.config.ts.
+Server: ../SignalR.server/appsettings.json, under Supabase.
+Both contain only the project's URL and publishable key.
+Deployment can override the server with Supabase__Url and Supabase__PublishableKey.
+Never put a service-role or secret key in the browser.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+In Authentication > URL Configuration, set the deployed app origin as Site URL.
+For local work use http://localhost:4200, and allow these redirects:
 
-## Running unit tests
+- http://localhost:4200/chat
+- http://localhost:5180/chat
+- https://localhost:7145/chat if using the HTTPS launch profile
+- Your deployed /chat URL
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Keep email confirmation enabled. Configure production SMTP for confirmation emails.
 
-```bash
-ng test
-```
+## Try private messaging
 
-## Running end-to-end tests
+Create two accounts with email addresses you control and confirm each email.
+Sign in in separate browsers or normal + Incognito windows.
+Both users must open /chat once to create their display profiles.
+Refresh People, select the other account, and send a message.
+Reload to confirm history persists. A check mark means saved, not read.
+Enter sends; Shift + Enter creates a new line.
+On a phone, select a person to open the conversation; the back arrow returns to People.
 
-For end-to-end (e2e) testing, run:
+## Message flow and authorization
 
-```bash
-ng e2e
-```
+1. The browser gets its session token from Supabase Auth and passes it to /hub.
+2. The server verifies the token with Supabase Auth's /auth/v1/user endpoint.
+   It never trusts an unverified JWT or a client-supplied sender ID.
+3. SendMessage takes only recipient ID and text. Sender comes from the authenticated principal.
+4. The server inserts the message using that user's bearer token. Database RLS still applies.
+5. Only after a successful save does SignalR send messageReceived to both users' active connections.
+6. Reconnection reloads the latest 100 messages to recover missed events.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Hub access requires authentication; connections close when their verified token expires.
+The SDK reconnects with the current session token. After retries run out, use Reconnect.
+Supabase Realtime subscriptions are no longer used by the client.
+The existing supabase_realtime publication may remain; it is not required for this flow.
 
-## Additional Resources
+All signed-in users can discover public display names and IDs. Emails are not in the directory.
+Users can read only messages where they are sender or recipient.
+The schema is recorded in ../supabase/schema.sql and already installed; do not rerun it.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This version has no read receipts, attachments, push notifications, older-history pagination,
+or offline outgoing queue. Multiple server instances require a SignalR backplane or Azure SignalR.
+The sample WeatherForecast API remains public; it is not part of messaging.
+Production hosting should use HTTPS.
+
+## Validation
+
+    npm test -- --watch=false --browsers=ChromeHeadless
+    npm run build
+    dotnet test ../SignalR.tests/SignalR.tests.csproj
+    dotnet build ../SignalR.server/SignalR.csproj
+
+Backend tests run real SignalR connections against a test host with a simulated Supabase API.
+They check anonymous/invalid-token denial, sender/recipient routing, multiple sender tabs,
+input validation, and no delivery when persistence fails.
+
+For live verification, supply three dedicated confirmed test accounts using
+CONVO_TEST_EMAIL_A/B/C and CONVO_TEST_PASSWORD_A/B/C environment variables.
+Start the backend, then run:
+
+    node scripts/verify-signalr.cjs
+
+Optionally set CONVO_TEST_HUB_URL=http://localhost:4200/hub to test the Angular proxy.
+The live check sends a test message between A and B, verifies C cannot receive/read it,
+and signs out the dedicated accounts afterward. Use disposable accounts, not normal sessions.
+
+Builds may report the existing 500 kB initial-bundle warning and the 4 kB component-style warning.
+Both remain below the configured build-error limits.
