@@ -1,38 +1,38 @@
-<main class="auth-page">
-  <section class="auth-story">
-    <a class="auth-brand" href="/login" aria-label="Convo home"><span><i class="pi pi-comments" aria-hidden="true"></i></span>convo.</a>
-    <div class="story-content">
-      <span class="story-eyebrow">LESS SCROLLING. MORE CONNECTING.</span>
+<main class="grid min-h-dvh grid-cols-[46%_54%] bg-[#fcfdfb] max-[650px]:grid-cols-1">
+  <section class="relative flex flex-col overflow-hidden bg-[#edf2e8] px-[60px] py-[38px] text-[#294c3c] max-[950px]:px-8 max-[950px]:py-[35px] max-[650px]:px-[25px] max-[650px]:py-[22px]">
+    <a class="flex items-center gap-2.5 text-[30px] font-extrabold tracking-[-1.5px] text-[#294c3c] no-underline [&>span]:grid [&>span]:size-[38px] [&>span]:place-items-center [&>span]:rounded-xl [&>span]:bg-[#167e65] [&>span]:text-xl [&>span]:text-white" href="/login" aria-label="Convo home"><span><i class="pi pi-comments" aria-hidden="true"></i></span>convo.</a>
+    <div class="my-auto pt-[55px] pb-[30px] max-[650px]:hidden [&_h1]:my-6 [&_h1]:font-serif [&_h1]:text-[clamp(35px,4vw,57px)] [&_h1]:leading-[1.1] [&_h1]:font-normal [&_h1]:tracking-[-2px] max-[950px]:[&_h1]:text-[42px] [&_em]:font-normal [&_em]:text-[#18816b] [&_p]:text-[13px] [&_p]:leading-[1.9] [&_p]:text-[#7c927f]">
+      <span class="text-[10px] font-[650] tracking-[2px] text-[#77917c]">LESS SCROLLING. MORE CONNECTING.</span>
       <h1>For the people<br />who make your<br /><em>day a little better.</em></h1>
       <p>A quiet space for real conversations.<br />Say hello. Catch up. Stay close.</p>
-      <div class="story-illustration" aria-hidden="true">
-        <span class="story-orbit"></span>
-        <span class="story-chat chat-green"><i class="pi pi-ellipsis-h"></i></span>
-        <span class="story-chat chat-gold"><i class="pi pi-heart"></i></span>
-        <span class="story-star">✦</span>
+      <div class="relative mt-[26px] h-[180px] w-[255px]" aria-hidden="true">
+        <span class="absolute top-1 left-[39px] size-[165px] rounded-full border border-[#d5dfcd]"></span>
+        <span class="absolute top-5 left-[15px] grid h-[86px] w-[120px] -rotate-9 place-items-center rounded-[26px_26px_26px_5px] bg-[#18816b] text-[42px] text-white shadow-[0_12px_25px_#236a4615]"><i class="pi pi-ellipsis-h"></i></span>
+        <span class="absolute top-[97px] right-5 grid h-[75px] w-[95px] rotate-10 place-items-center rounded-[24px_24px_5px_24px] bg-[#dec18a] text-[31px] text-white shadow-[0_12px_25px_#236a4615]"><i class="pi pi-heart"></i></span>
+        <span class="absolute top-7 right-2.5 text-[26px] text-[#97ac90]">✦</span>
       </div>
     </div>
-    <span class="story-footer">A small hello can mean a lot.</span>
+    <span class="text-[11px] text-[#82977e] max-[650px]:hidden">A small hello can mean a lot.</span>
   </section>
-  <section class="auth-form-panel">
-    <div class="auth-form-wrap">
-      <span class="form-eyebrow">{{ registering() ? 'YOUR NEXT CONVERSATION STARTS HERE' : 'GOOD TO SEE YOU AGAIN' }}</span>
+  <section class="flex flex-col items-center justify-center px-9 py-[55px] max-[650px]:min-h-[calc(100dvh-82px)] max-[650px]:px-[25px] max-[650px]:pt-10 max-[650px]:pb-[26px]">
+    <div class="my-auto w-full max-w-[370px] [&_h2]:mt-[17px] [&_h2]:mb-2.5 [&_h2]:text-[31px] [&_h2]:leading-[1.2] [&_h2]:font-[650] [&_h2]:tracking-[-1.2px] [&_h2]:text-[#2b4235] max-[650px]:[&_h2]:text-[29px]">
+      <span class="text-[9px] font-[650] tracking-[2px] text-[#91a38e]">{{ registering() ? 'YOUR NEXT CONVERSATION STARTS HERE' : 'GOOD TO SEE YOU AGAIN' }}</span>
       <h2>{{ registering() ? 'Make yourself at home.' : 'Welcome back.' }}</h2>
-      <p class="form-description">{{ registering() ? 'Create an account and connect with your people.' : 'Your people are just a message away.' }}</p>
-      <form #authForm="ngForm" (ngSubmit)="submit(authForm)" class="auth-form">
+      <p class="mb-[33px] text-xs leading-[1.8] text-[#8b9b8b]">{{ registering() ? 'Create an account and connect with your people.' : 'Your people are just a message away.' }}</p>
+      <form #authForm="ngForm" (ngSubmit)="submit(authForm)" class="grid gap-[21px]">
         @if (registering()) {
-          <div class="auth-field">
+          <div class="grid gap-[9px] [&_label]:text-xs [&_label]:font-semibold [&_label]:text-[#4c6352] [&_input]:w-full [&_input]:rounded-[9px] [&_input]:px-[15px] [&_input]:py-[13px] [&_input]:text-[13px] [&_small]:text-[10px] [&_small]:text-[#91a18f]">
             <label for="display-name">Display name</label>
             <input pInputText id="display-name" name="name" [(ngModel)]="name" required maxlength="60"
               autocomplete="nickname" placeholder="What should we call you?" [disabled]="busy()" />
           </div>
         }
-        <div class="auth-field">
+        <div class="grid gap-[9px] [&_label]:text-xs [&_label]:font-semibold [&_label]:text-[#4c6352] [&_input]:w-full [&_input]:rounded-[9px] [&_input]:px-[15px] [&_input]:py-[13px] [&_input]:text-[13px] [&_small]:text-[10px] [&_small]:text-[#91a18f]">
           <label for="email">Email address</label>
           <input pInputText id="email" name="email" [(ngModel)]="email" type="email" email required
             autocomplete="email" placeholder="you@example.com" [disabled]="busy()" />
         </div>
-        <div class="auth-field">
+        <div class="grid gap-[9px] [&_label]:text-xs [&_label]:font-semibold [&_label]:text-[#4c6352] [&_input]:w-full [&_input]:rounded-[9px] [&_input]:px-[15px] [&_input]:py-[13px] [&_input]:text-[13px] [&_small]:text-[10px] [&_small]:text-[#91a18f]">
           <label for="password">Password</label>
           <p-password inputId="password" name="password" [(ngModel)]="password" required
             [minlength]="registering() ? 8 : 1" [feedback]="registering()" [toggleMask]="true" [fluid]="true"
@@ -43,14 +43,14 @@
         @if (notice()) {
           <div role="status"><p-message [severity]="noticeSeverity()" [closable]="false">{{ notice() }}</p-message></div>
         }
-        <p-button type="submit" [label]="registering() ? 'Create account' : 'Sign in'"
+        <p-button styleClass="rounded-[9px] px-4 py-[13px] text-[13px]" type="submit" [label]="registering() ? 'Create account' : 'Sign in'"
           icon="pi pi-arrow-right" iconPos="right" [fluid]="true" [loading]="busy()" [disabled]="busy()" />
       </form>
-      <div class="auth-switch"><span>{{ registering() ? 'Already part of the conversation?' : 'New around here?' }}</span>
-        <p-button [label]="registering() ? 'Sign in' : 'Create an account'" [link]="true" [disabled]="busy()" (onClick)="toggleMode()" />
+      <div class="mt-[21px] mb-[27px] flex flex-wrap items-center justify-center text-[11px] text-[#91a18f]"><span>{{ registering() ? 'Already part of the conversation?' : 'New around here?' }}</span>
+        <p-button styleClass="px-[7px] py-1.5 text-[11px]" [label]="registering() ? 'Sign in' : 'Create an account'" [link]="true" [disabled]="busy()" (onClick)="toggleMode()" />
       </div>
-      <div class="auth-privacy"><i class="pi pi-shield" aria-hidden="true"></i><span>Private messages. Real connections.</span></div>
+      <div class="flex justify-center gap-2 border-t border-[#e6ebe1] pt-[25px] text-[10px] text-[#a0ad99]"><i class="pi pi-shield" aria-hidden="true"></i><span>Private messages. Real connections.</span></div>
     </div>
-    <span class="auth-bottom">A little closer, one message at a time.</span>
+    <span class="mt-[35px] text-[10px] text-[#a5b09f]">A little closer, one message at a time.</span>
   </section>
 </main>
