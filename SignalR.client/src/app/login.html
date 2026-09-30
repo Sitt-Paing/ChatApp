@@ -1,0 +1,56 @@
+<main class="auth-page">
+  <section class="auth-story">
+    <a class="auth-brand" href="/login" aria-label="Convo home"><span><i class="pi pi-comments" aria-hidden="true"></i></span>convo.</a>
+    <div class="story-content">
+      <span class="story-eyebrow">LESS SCROLLING. MORE CONNECTING.</span>
+      <h1>For the people<br />who make your<br /><em>day a little better.</em></h1>
+      <p>A quiet space for real conversations.<br />Say hello. Catch up. Stay close.</p>
+      <div class="story-illustration" aria-hidden="true">
+        <span class="story-orbit"></span>
+        <span class="story-chat chat-green"><i class="pi pi-ellipsis-h"></i></span>
+        <span class="story-chat chat-gold"><i class="pi pi-heart"></i></span>
+        <span class="story-star">✦</span>
+      </div>
+    </div>
+    <span class="story-footer">A small hello can mean a lot.</span>
+  </section>
+  <section class="auth-form-panel">
+    <div class="auth-form-wrap">
+      <span class="form-eyebrow">{{ registering() ? 'YOUR NEXT CONVERSATION STARTS HERE' : 'GOOD TO SEE YOU AGAIN' }}</span>
+      <h2>{{ registering() ? 'Make yourself at home.' : 'Welcome back.' }}</h2>
+      <p class="form-description">{{ registering() ? 'Create an account and connect with your people.' : 'Your people are just a message away.' }}</p>
+      <form #authForm="ngForm" (ngSubmit)="submit(authForm)" class="auth-form">
+        @if (registering()) {
+          <div class="auth-field">
+            <label for="display-name">Display name</label>
+            <input pInputText id="display-name" name="name" [(ngModel)]="name" required maxlength="60"
+              autocomplete="nickname" placeholder="What should we call you?" [disabled]="busy()" />
+          </div>
+        }
+        <div class="auth-field">
+          <label for="email">Email address</label>
+          <input pInputText id="email" name="email" [(ngModel)]="email" type="email" email required
+            autocomplete="email" placeholder="you@example.com" [disabled]="busy()" />
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <p-password inputId="password" name="password" [(ngModel)]="password" required
+            [minlength]="registering() ? 8 : 1" [feedback]="registering()" [toggleMask]="true" [fluid]="true"
+            [autocomplete]="registering() ? 'new-password' : 'current-password'"
+            placeholder="Enter your password" [disabled]="busy()" />
+          @if (registering()) { <small>Use at least 8 characters.</small> }
+        </div>
+        @if (notice()) {
+          <div role="status"><p-message [severity]="noticeSeverity()" [closable]="false">{{ notice() }}</p-message></div>
+        }
+        <p-button type="submit" [label]="registering() ? 'Create account' : 'Sign in'"
+          icon="pi pi-arrow-right" iconPos="right" [fluid]="true" [loading]="busy()" [disabled]="busy()" />
+      </form>
+      <div class="auth-switch"><span>{{ registering() ? 'Already part of the conversation?' : 'New around here?' }}</span>
+        <p-button [label]="registering() ? 'Sign in' : 'Create an account'" [link]="true" [disabled]="busy()" (onClick)="toggleMode()" />
+      </div>
+      <div class="auth-privacy"><i class="pi pi-shield" aria-hidden="true"></i><span>Private messages. Real connections.</span></div>
+    </div>
+    <span class="auth-bottom">A little closer, one message at a time.</span>
+  </section>
+</main>
