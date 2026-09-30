@@ -18,7 +18,7 @@ import { AuthService } from './service/auth.service';
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.html',
-  styleUrl: './chat.scss',
+  host: { class: 'block' },
   imports: [AvatarModule, ButtonModule, InputTextModule, TextareaModule, TagModule, MessageModule, SkeletonModule, FormsModule, DatePipe, RouterLink],
 })
 export class Chat implements OnInit, OnDestroy {
