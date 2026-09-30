@@ -28,7 +28,11 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: ConvoTheme,
         options: {
-          darkModeSelector: 'none'
+          darkModeSelector: 'none',
+          cssLayer: {
+            name: 'primeng',
+            order: 'theme, base, primeng, components, utilities'
+          }
         }
       }
     })
