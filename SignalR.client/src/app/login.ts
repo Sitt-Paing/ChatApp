@@ -11,7 +11,7 @@ import { AuthService } from './service/auth.service';
   selector: 'app-login',
   imports: [FormsModule, ButtonModule, InputTextModule, PasswordModule, MessageModule],
   templateUrl: './login.html',
-  styleUrl: './login.scss',
+  host: { class: 'block' },
 })
 export class Login {
   private readonly auth = inject(AuthService);
