@@ -1,0 +1,14 @@
+{
+  "/hub": {
+    "target": "http://localhost:5180",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true
+  },
+  "/hub/**": {
+    "target": "http://localhost:5180",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true
+  }
+}
