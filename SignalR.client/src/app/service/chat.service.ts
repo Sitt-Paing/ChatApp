@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from './auth.service';
 
 export interface Profile { id: string; display_name: string; }
@@ -10,7 +10,7 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'er
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private readonly auth = inject(AuthService);
-  private connection?: HubConnection;
+  private channels: RealtimeChannel[] = [];
   private generation = 0;
   readonly contacts = signal<Profile[]>([]);
   readonly recipient = signal<Profile | null>(null);
@@ -29,17 +29,21 @@ export class ChatService {
   }
 
   async startConnection(): Promise<void> {
-    if (this.connection?.state === HubConnectionState.Connected ||
-        this.connectionStatus() === 'connecting') return;
+    if (this.connectionStatus() === 'connected' || this.connectionStatus() === 'connecting') return;
     const generation = ++this.generation;
-    const previous = this.connection;
-    this.connection = undefined;
     this.connectionStatus.set('connecting');
     this.error.set('');
     try {
-      if (previous) await previous.stop();
+      await this.removeChannels();
       if (!await this.auth.authenticated()) throw new Error('Please sign in again.');
-      const user = this.auth.user()!;
+      const user = this.auth.user();
+      if (!user) throw new Error('Please sign in again.');
+
+      const { data: sessionData, error: sessionError } = await this.auth.client.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!sessionData.session) throw new Error('Please sign in again.');
+      this.auth.client.realtime.setAuth(sessionData.session.access_token);
+
       const { data: existing, error: lookupError } = await this.auth.client
         .from('profiles').select('id').eq('id', user.id).maybeSingle();
       if (lookupError) throw lookupError;
@@ -52,45 +56,43 @@ export class ChatService {
       await this.refreshContacts();
       if (generation !== this.generation) return;
 
-      const connection = new HubConnectionBuilder()
-        .withUrl('/hub', {
-          accessTokenFactory: async () => {
-            const { data, error } = await this.auth.client.auth.getSession();
-            if (error || !data.session) throw new Error('Please sign in again.');
-            return data.session.access_token;
-          },
-        })
-        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-        .configureLogging(LogLevel.Warning)
-        .build();
-      this.connection = connection;
-      connection.on('messageReceived', (row: MessageRow) => {
-        if (generation !== this.generation) return;
-        const peer = this.recipient();
-        if (peer && ((row.sender_id === user.id && row.recipient_id === peer.id) ||
-          (row.sender_id === peer.id && row.recipient_id === user.id))) this.merge([row]);
+      const channel = this.auth.client.channel(`messages:${user.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${user.id}`,
+        }, payload => this.receiveMessage(payload.new as MessageRow, generation, user.id))
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'messages', filter: `sender_id=eq.${user.id}`,
+        }, payload => this.receiveMessage(payload.new as MessageRow, generation, user.id));
+      this.channels.push(channel);
+
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Realtime connection timed out. Please reconnect.')), 15_000);
+        channel.subscribe((status, error) => {
+          if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            if (generation === this.generation) {
+              this.connectionStatus.set('connected');
+              this.error.set('');
+            }
+            resolve();
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            clearTimeout(timeout);
+            const failure = error ?? new Error(`Realtime subscription ${status.toLowerCase()}.`);
+            if (generation === this.generation) {
+              this.connectionStatus.set('error');
+              this.error.set(failure instanceof Error ? failure.message : 'Realtime connection lost. Please reconnect.');
+            }
+            reject(failure);
+          }
+        });
       });
-      connection.onreconnecting(() => {
-        if (generation === this.generation) this.connectionStatus.set('connecting');
-      });
-      connection.onreconnected(() => {
-        if (generation !== this.generation) return;
-        this.connectionStatus.set('connected');
-        this.error.set('');
-        void this.loadHistory().catch(error => this.fail(error, false));
-      });
-      connection.onclose(() => {
-        if (generation !== this.generation) return;
-        this.connectionStatus.set('disconnected');
-        this.error.set('Connection paused. Reconnect to continue chatting.');
-      });
-      await connection.start();
-      if (generation !== this.generation) { await connection.stop(); return; }
-      this.connectionStatus.set('connected');
+      if (generation !== this.generation) return;
       await this.loadHistory();
     } catch (error) {
-      if (generation === this.generation)
-        this.fail(error, this.connection?.state !== HubConnectionState.Connected);
+      if (generation === this.generation) {
+        await this.removeChannels();
+        this.fail(error);
+      }
     }
   }
 
@@ -111,6 +113,13 @@ export class ChatService {
     this.messages.set([]);
     this.error.set('');
     try { await this.loadHistory(); } catch (error) { this.fail(error, false); }
+  }
+
+  private receiveMessage(row: MessageRow, generation: number, userId: string): void {
+    if (generation !== this.generation) return;
+    const peer = this.recipient();
+    if (peer && ((row.sender_id === userId && row.recipient_id === peer.id) ||
+      (row.sender_id === peer.id && row.recipient_id === userId))) this.merge([row]);
   }
 
   private async loadHistory(): Promise<void> {
@@ -146,18 +155,19 @@ export class ChatService {
   async sendMessage(text: string): Promise<void> {
     const peer = this.recipient();
     const body = text.trim();
-    const connection = this.connection;
+    const senderId = this.currentUserId;
     if (!peer || !body || body.length > 4000 || this.sending())
       throw new Error('Choose a contact and enter a message of 1–4000 characters.');
-    if (!connection || connection.state !== HubConnectionState.Connected)
-      throw new Error('Reconnect before sending a message.');
+    if (this.connectionStatus() !== 'connected') throw new Error('Reconnect before sending a message.');
     const generation = this.generation;
     this.sending.set(true);
     this.error.set('');
     try {
-      // The hub derives sender identity from the verified token and saves before delivery.
-      const row = await connection.invoke<MessageRow>('SendMessage', peer.id, body);
-      if (generation === this.generation && this.recipient()?.id === peer.id) this.merge([row]);
+      const { data, error } = await this.auth.client.from('messages')
+        .insert({ sender_id: senderId, recipient_id: peer.id, body })
+        .select('id, sender_id, recipient_id, body, created_at').single();
+      if (error) throw error;
+      if (generation === this.generation && this.recipient()?.id === peer.id) this.merge([data]);
     } catch (error) { this.fail(error, false); throw error; }
     finally { this.sending.set(false); }
   }
@@ -167,16 +177,20 @@ export class ChatService {
     if (connection) this.connectionStatus.set('error');
   }
 
+  private async removeChannels(): Promise<void> {
+    const channels = this.channels;
+    this.channels = [];
+    await Promise.all(channels.map(channel => this.auth.client.removeChannel(channel)));
+  }
+
   async stopConnection(): Promise<void> {
     ++this.generation;
-    const connection = this.connection;
-    this.connection = undefined;
+    await this.removeChannels();
     this.messages.set([]);
     this.contacts.set([]);
     this.recipient.set(null);
     this.loadingContacts.set(false);
     this.loadingHistory.set(false);
     this.connectionStatus.set('disconnected');
-    if (connection) await connection.stop();
   }
 }
