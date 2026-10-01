@@ -1,4 +1,4 @@
-# Pi — Private Messaging
+# ChatApp — Private Messaging
 
 A responsive private messaging app built with Angular 20, TypeScript, PrimeNG 20.4.0,
 Tailwind CSS, and Supabase.
@@ -29,7 +29,7 @@ the ASP.NET server to send or receive messages.
 From the repository root:
 
 ```powershell
-cd SignalR.client
+cd ChatApp.client
 npm ci
 npm start
 ```
@@ -50,17 +50,17 @@ and live events use the configured Supabase project directly.
 The Vercel build command is:
 
 ```text
-cd SignalR.client && npm ci && npm run build
+cd ChatApp.client && npm ci && npm run build
 ```
 
-Angular writes its static output to `SignalR.server/wwwroot`, which Vercel publishes.
+Angular writes its static output to `ChatApp.server/wwwroot`, which Vercel publishes.
 The rewrite to `index.html` allows direct navigation to routes such as `/login` and
 `/chat`. This deployment does not run the retained .NET backend.
 
 ## Supabase configuration
 
 The browser project URL and publishable key are configured in
-[supabase.config.ts](SignalR.client/src/app/supabase.config.ts).
+[supabase.config.ts](ChatApp.client/src/app/supabase.config.ts).
 Publishable keys are intended for browser clients. Never place a service-role or
 secret key in frontend code; the user session, database grants, and RLS enforce access.
 
@@ -134,17 +134,17 @@ a failed subscription.
 
 | File | Responsibility |
 | --- | --- |
-| [main.ts](SignalR.client/src/main.ts) | Boots Angular |
-| [app.config.ts](SignalR.client/src/app/app.config.ts) | Router, reactive change detection, PrimeNG theme, and CSS layers |
-| [app.routes.ts](SignalR.client/src/app/app.routes.ts) | Lazy-loaded login/chat routes |
-| [auth.guard.ts](SignalR.client/src/app/auth.guard.ts) | Redirects unauthenticated visitors to login |
-| [auth.service.ts](SignalR.client/src/app/service/auth.service.ts) | Supabase client, user state, and session verification |
-| [login.ts](SignalR.client/src/app/login.ts) | Registration/login validation and requests |
-| [login.html](SignalR.client/src/app/login.html) | PrimeNG login/register form and Tailwind layout |
-| [chat.ts](SignalR.client/src/app/chat.ts) | Search, keyboard handling, drafts, scrolling, and logout |
-| [chat.service.ts](SignalR.client/src/app/service/chat.service.ts) | Profiles, Realtime subscriptions, message inserts, history, and state |
-| [chat.html](SignalR.client/src/app/chat.html) | Responsive messenger UI |
-| [styles.css](SignalR.client/src/styles.css) | Tailwind/PrimeUI imports, fonts, focus, and base styles |
+| [main.ts](ChatApp.client/src/main.ts) | Boots Angular |
+| [app.config.ts](ChatApp.client/src/app/app.config.ts) | Router, reactive change detection, PrimeNG theme, and CSS layers |
+| [app.routes.ts](ChatApp.client/src/app/app.routes.ts) | Lazy-loaded login/chat routes |
+| [auth.guard.ts](ChatApp.client/src/app/auth.guard.ts) | Redirects unauthenticated visitors to login |
+| [auth.service.ts](ChatApp.client/src/app/service/auth.service.ts) | Supabase client, user state, and session verification |
+| [login.ts](ChatApp.client/src/app/login.ts) | Registration/login validation and requests |
+| [login.html](ChatApp.client/src/app/login.html) | PrimeNG login/register form and Tailwind layout |
+| [chat.ts](ChatApp.client/src/app/chat.ts) | Search, keyboard handling, drafts, scrolling, and logout |
+| [chat.service.ts](ChatApp.client/src/app/service/chat.service.ts) | Profiles, Realtime subscriptions, message inserts, history, and state |
+| [chat.html](ChatApp.client/src/app/chat.html) | Responsive messenger UI |
+| [styles.css](ChatApp.client/src/styles.css) | Tailwind/PrimeUI imports, fonts, focus, and base styles |
 | [schema.sql](supabase/schema.sql) | Tables, constraints, indexes, grants, and RLS policies |
 
 Components manage interaction and presentation; services manage authentication and
@@ -158,7 +158,7 @@ utilities to override component styles where needed.
 From the repository root:
 
 ```powershell
-cd SignalR.client
+cd ChatApp.client
 npm run build
 npm test -- --watch=false --browsers=ChromeHeadless
 ```
@@ -171,7 +171,7 @@ separate from the 1 MB build-error limit.
 
 ## Retained SignalR backend
 
-The backend remains in [SignalR.server](SignalR.server), targeting .NET 10.
+The backend remains in [ChatApp.server](ChatApp.server), targeting .NET 10.
 Its `/hub` endpoint verifies Supabase tokens, saves messages using the caller's
 token so RLS applies, and then sends `messageReceived` to sender/recipient connections.
 The current Angular client does not call that endpoint. Running the backend alone
@@ -180,20 +180,20 @@ does not switch the frontend transport back to SignalR.
 From the repository root, with the .NET 10 SDK installed:
 
 ```powershell
-dotnet run --project SignalR.server/SignalR.csproj --launch-profile http
-dotnet build SignalR.server/SignalR.csproj
-dotnet test SignalR.tests/SignalR.tests.csproj
+dotnet run --project ChatApp.server/ChatApp.csproj --launch-profile http
+dotnet build ChatApp.server/ChatApp.csproj
+dotnet test ChatApp.tests/ChatApp.tests.csproj
 ```
 
 The HTTP launch profile listens at `http://localhost:5180`. After building Angular,
 ASP.NET can serve the static frontend from `wwwroot`; that frontend still uses
-Supabase Realtime. Backend Supabase settings are in `SignalR.server/appsettings.json`
+Supabase Realtime. Backend Supabase settings are in `ChatApp.server/appsettings.json`
 and can be overridden with `Supabase__Url` and `Supabase__PublishableKey`.
 
 The backend tests use SignalR connections and a simulated Supabase API to verify
 token denial, sender/recipient routing, multiple sender tabs, validation, and no
 delivery after a failed save. The script
-[verify-signalr.cjs](SignalR.client/scripts/verify-signalr.cjs) checks the retained
+[verify-chatapp.cjs](ChatApp.client/scripts/verify-chatapp.cjs) checks the retained
 SignalR backend with dedicated test accounts; it does not test the current Vercel client.
 
 ## Current limits
